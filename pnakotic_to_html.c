@@ -273,7 +273,6 @@ static void parse_meta (Emitter *emitter, Pn_Ast *node, int is_block) {
         append(emitter, "><details><summary>");
         while ((e = pn_next(emitter->parser))->type == PN_EVENT_TEXT_META) append_tok(emitter, e->as.token);
         append(emitter, "</summary>");
-        printf("--- %i\n", e->as.node->type);
     } else {
         append(emitter, ">");
     }
