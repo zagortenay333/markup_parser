@@ -136,11 +136,11 @@ insert_editor(`\
 A header is similar to a paragraph; a block that contains a sequence \
 of non-blank text lines.
 
-1. A header begins with 1 or more '#' characters.
+1. A header begins with 1 or more '\#' characters.
 2. A single optional space is allowed before the text (like
    with most other blocks.)
 3. The level (size) of the header is given either by the
-   number of '#' chars or by a sequence of numbers
+   number of '\#' chars or by a sequence of numbers
    separated by a dot.
 
 =======================================
@@ -378,7 +378,6 @@ A list-like block which is introduced by 1 ':' character:
 
 : fg slategrey
   Like a list-item it can contain any elements
-
   > Here is a blockquote
 
 The text on the first line (after ':') is the metadata. That is, only 1 line of \
@@ -389,7 +388,7 @@ It's also possible to begin the content on the same line as the metadata by addi
 =======================================
 
 : TIP
-  :fg olive: Let me tell you about our lord and savior:
+  :fg olive: Let me tell you about our lord and savior
   :img https\\://upload.wikimedia.org/wikipedia/commons/2/28/Azathoth.jpg
 
 =======================================
@@ -546,7 +545,7 @@ What the people of Dunwich see:
 `);
 
 insert_markup("===========================================================================");
-insert_markup(`
+insert_markup(`\
 #12. Inline Elements
 
 Inline elements are contained within text and they can|
