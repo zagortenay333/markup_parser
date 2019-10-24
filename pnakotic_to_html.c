@@ -222,7 +222,7 @@ static int match (char *str, Pn_Token *token) {
     return !strncmp(str, token->txt.buf, token->txt.len);
 }
 
-static void parse_meta (Emitter *emitter, int is_block) {
+static void parse_meta (Emitter *emitter, Pn_Ast *node, int is_block) {
     Pn_Event *e = meta_next(emitter);
 
     if (! e) {
@@ -269,10 +269,11 @@ static void parse_meta (Emitter *emitter, int is_block) {
     } else if (is_block && match("table_style_transparent", e->as.token)) {
         append(emitter, "class='table-style-transparent'>");
     } else if (is_block && match(">", e->as.token)) {
+        node->type = -1; // Mark for on_exit().
         append(emitter, "><details><summary>");
         while ((e = pn_next(emitter->parser))->type == PN_EVENT_TEXT_META) append_tok(emitter, e->as.token);
         append(emitter, "</summary>");
-        e->as.node->type = -1; // Mark for on_exit().
+        printf("--- %i\n", e->as.node->type);
     } else {
         append(emitter, ">");
     }
@@ -302,9 +303,9 @@ static void on_enter (Emitter *emitter, Pn_Ast *node) {
     case PN_AST_LIST_BY_NUMBER:      append(emitter, "<ol>"); break;
     case PN_AST_LIST_BY_NUMBER_ITEM: append(emitter, "<li>"); break;
     case PN_AST_LIST_BY_CHECKBOX:    append(emitter, "<ul class=\"by-checkbox\">"); break;
-    case PN_AST_META_INLINE:         append(emitter, "<span "); parse_meta(emitter, 0); break;
-    case PN_AST_META_TREE:           append(emitter, "<div "); parse_meta(emitter, 1); break;
-    case PN_AST_META_BLOCK:          append(emitter, "<div "); parse_meta(emitter, 1); break;
+    case PN_AST_META_INLINE:         append(emitter, "<span "); parse_meta(emitter, node, 0); break;
+    case PN_AST_META_TREE:           append(emitter, "<div "); parse_meta(emitter, node, 1); break;
+    case PN_AST_META_BLOCK:          append(emitter, "<div "); parse_meta(emitter, node, 1); break;
 
     case PN_AST_LIST_BY_CHECKBOX_ITEM: {
         append(emitter, "<li><input style=\"float: left; margin-left: -1.7em;\" type=\"checkbox\" disabled=\"\"");
