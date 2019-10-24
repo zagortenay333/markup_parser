@@ -1,0 +1,58 @@
+These tests are mainly intended for the `pnakotic.h` file.
+
+There is an `afl_dict` file for some afl fuzzing.
+When fuzzing, keep in mind that `pnakotic.h` expects valid utf-8 inputs.
+
+--------------------------------------------------------------------------------
+
+After you manually verify that the parser correctly parses the test cases
+(for example by using the web sandbox) you can run the `build` script which
+will serialize the outputs of the parser for each test case and put them into
+a new dir named `serialized_test_cases`.
+
+After that you can auto-run the tests with the `run` script which will check
+that that the parser still generates the same outputs.
+
+--------------------------------------------------------------------------------
+
+The generated serialized outputs are utf-8 files.
+
+The parser's output AST is serialized by traversing it depth-first left-to-right
+and creating 1 text line to store info about that node. That is, a traversal of
+the AST is what's being serialized.
+
+The syntax is a sequence of lines where each line is a sequence of tokens
+separated by a single space where:
+```
+token1    either i (for node entered) or o (for node exited)
+token2    (unsigned int) indentation level of the node
+token3    (unsigned int) start-line if token1=i; otherwise end-line
+token4    node type (Pn_Ast_Type from `pnakotic.h` serialized)
+```
+
+There can be more tokens depending on the type of the node. For now, only the
+table and table-cell nodes have extra fields:
+
+Table:
+```
+token5   (unsigned int) number of rows
+token6   (unsigned int) number of columns
+```
+
+Table Cell:
+```
+token5   (unsigned int) row coordinate
+token6   (unsigned int) column coordinate
+token7   (unsigned int) width
+token8   (unsigned int) height
+```
+
+Example:
+```
+i 0 1 PN_AST_PARAGRAPH
+o 0 1 PN_AST_PARAGRAPH
+i 0 2 PN_AST_PARAGRAPH_BLANK
+o 0 2 PN_AST_PARAGRAPH_BLANK
+i 0 3 PN_AST_COMMENT
+o 0 3 PN_AST_COMMENT
+```

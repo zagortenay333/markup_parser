@@ -1,0 +1,21 @@
+#!/bin/bash
+set -o nounset
+
+browser="firefox"
+files_to_watch=("index.html" "stylesheet.css")
+
+trap 'kill -- -$$' EXIT # kill the emrun server
+emrun --browser "$browser" "index.html" &
+
+refresh_browser () {
+    browser_windows="$(xdotool search --sync --all --onlyvisible --name $browser)"
+
+    for bw in $browser_windows; do
+        xdotool key --window "$bw" "CTRL+F5"
+    done
+}
+
+while true; do
+    inotifywait --quiet --event close_write "${files_to_watch[@]}"
+    refresh_browser
+done

@@ -1,0 +1,66 @@
+==========================================================
+
+- This is some text.
+
+  |---
+  | a
+|---
+| a
+|---
+
+==========================================================
+
+This is some text.
+- This is some text.
+  - This is some text.
+  This is some text.
+This is some text.
+
+==========================================================
+
+- This is some text.
+
+  - This is some text.
+
+    - This is some text.
+
+==========================================================
+
+- This is some text.
+
+  - This is some text.
+
+    - This is some text.
+
+==========================================================
+
+- This is some text.
+
+  - This is some text.
+
+       - This is some text.
+
+==========================================================
+
+1. This is some text.
+- This is some text.
+[x] This is some text.
+-- This is some text.
+
+==========================================================
+
+[ ] This is some text.
+[ ] This is some text.
+
+[ ] This is some text.
+
+[] This is some text.
+
+==========================================================
+
+- This is some text.
+- This is some text.
+
+- This is some text.
+- This is some text.
+

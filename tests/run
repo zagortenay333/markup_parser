@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for file in test_cases/*; do
+    target="${file##*/}"
+    target="${target%.ptxt}"
+    ./serialization_test --test "$file" "serialized_test_cases/$target.ast"
+done
+
