@@ -137,9 +137,9 @@ A header is similar to a paragraph; a block that contains a sequence \
 of non-blank text lines.
 
 1. A header begins with 1 or more '#' characters.
-2. A single optional space is allowed before the text (like 
+2. A single optional space is allowed before the text (like
    with most other blocks.)
-3. The level (size) of the header is given either by the 
+3. The level (size) of the header is given either by the
    number of '#' chars or by a sequence of numbers
    separated by a dot.
 
@@ -462,7 +462,7 @@ It uses 2 open/close brackets '[]' to attach some metadata to a piece of text.
 =======================================
 
 - Nobody:
-- Cthulhu worshippers: [[fg #aaddaa: Ph'nglui mglw'nafh 
+- Cthulhu worshippers: [[fg #aaddaa: Ph'nglui mglw'nafh
   Cthulhu R'lyeh wgah'nagl fhtagn]]
 
 =======================================
@@ -546,30 +546,33 @@ What the people of Dunwich see:
 `);
 
 insert_markup("===========================================================================");
-insert_markup("#12. Inline Elements", "inline_elements");
-insert_editor(`\
-Inline elements are contained within text and can contain other inline elements.
+insert_markup(`
+#12. Inline Elements
 
-An inline element extends from an opening delimiter up to the closing delimiter or \
-the end of the block that contains the text.
+Inline elements are contained within text and they can|
+contain other inline elements.
 
-If the open/close delimiters use the same char, then they must have the same length.
+An inline element extends from an opening delimiter up to|
+the closing delimiter or the end of the block that contains the text.
 
-A closing delimiter can only pair with an opening delimiter if they both \
-appear on the same level of nesting.
+If the open/close delimiters use the same char, then they|
+must have the same length.
+
+A closing delimiter can only pair up with an opening delimiter|
+if they both appear on the same level of nesting.|
 For example:
-- In the string \`*A~~B*C\`, the second '\\*' is an opening
+- In the string \`*A~~B*C\`, the second '\\*' is an opening|
   delim because it's nested inside the opening '\\~~'.
-- In the string \`*A~~B~~*C\`, the second '\\*' is closing
+- In the string \`*A~~B~~*C\`, the second '\\*' is closing|
   because it's on the same level as the first '\\*'.
 - In the string \`*A~~B*C~~\`, all delims are opening.
-- In the string \`[[A: *B]] C\`, the closing ']]' is not a 
-  delim and will be rendered as just regular square 
-  brackets. The opening '\\[[' ends at the end of the 
+- In the string \`[[A: *B]] C\`, the closing ']]' is not a |
+  delim and will be rendered as just regular square |
+  brackets. The opening '\\[[' ends at the end of the |
   string.
+`, "inline_elements");
 
-=======================================
-
+insert_editor(`\
 **\`Emphasized text\`** starts with 1 or more '\\*' chars.
 
 The number of '\\*' chars in the delimiters indicates the level of emphasis.
