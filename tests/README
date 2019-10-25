@@ -3,7 +3,7 @@ These tests are mainly intended for the `pnakotic.h` file.
 There is an `afl_dict` file for some afl fuzzing.
 When fuzzing, keep in mind that `pnakotic.h` expects valid utf-8 inputs.
 
---------------------------------------------------------------------------------
+================================================================================
 
 After you manually verify that the parser correctly parses the test cases
 (for example by using the web sandbox) you can run the `build` script which
@@ -13,7 +13,7 @@ a new dir named `serialized_test_cases`.
 After that you can auto-run the tests with the `run` script which will check
 that that the parser still generates the same outputs.
 
---------------------------------------------------------------------------------
+================================================================================
 
 The generated serialized outputs are utf-8 files.
 
