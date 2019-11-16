@@ -916,8 +916,7 @@ static Pn_Parser_State pn_parse_table_cell (Pn_Parser parser, Pn_Lexer *lex, Pn_
 
     if (table_frame->state == PN_PARSER_STATE_TABLE_ADDING_MISSING_CELLS) { T->col++; return PN_PARSER_STATE_NODE_EXIT; }
 
-    // Parse cell dimensions if any.
-    {
+    { // Parse cell dimensions if any.
         int n_cols = 0;
         Pn_Token *token = pn_peek_token(lex, 1);
 
@@ -1079,7 +1078,6 @@ static Pn_Parselet get_inline_parselet (Pn_Parser parser) {
     if (parser->frames_count >= PN_MAX_RECURSION_DEPTH) return pn_parse_text;
 
     switch (token->type) {
-    case PN_TOKEN_EOF: return NULL;
     case '\\': if (!S) { pn_eat_token(lex); return pn_parse_text; } break;
     case '[':  return !S && token->txt.len == 2 ? pn_parse_meta_inline    : pn_parse_text;
     case '*':  return !F                        ? pn_parse_emphasis       : pn_parse_text;
@@ -1093,7 +1091,7 @@ static Pn_Parselet get_inline_parselet (Pn_Parser parser) {
     return pn_parse_text;
 }
 
-static int make_node_pool (Pn_Parser parser) {
+static int pn_make_node_pool (Pn_Parser parser) {
     Pn_Ast_Pool *pool = parser->alloc.malloc(sizeof(*pool));
     if (! pool) return 0;
 
@@ -1104,8 +1102,8 @@ static int make_node_pool (Pn_Parser parser) {
     return (pool->nodes != NULL);
 }
 
-static Pn_Ast *make_node (Pn_Parser parser) {
-    if (parser->ast_pool_item_count == parser->ast_pool_capacity && !make_node_pool(parser)) return NULL;
+static Pn_Ast *pn_make_node (Pn_Parser parser) {
+    if (parser->ast_pool_item_count == parser->ast_pool_capacity && !pn_make_node_pool(parser)) return NULL;
 
     Pn_Token *token     = pn_peek_token(&parser->lexer, 1);
     Pn_Ast *node        = &parser->ast_pool->nodes[parser->ast_pool_item_count++];
@@ -1124,7 +1122,7 @@ static void pn_push_frame (Pn_Parser parser, Pn_Parselet parselet) {
     Pn_Parselet_Frame *parent_frame = frame - 1;
     assert(parent_frame->state != PN_PARSER_STATE_NODE_ENTER);
 
-    Pn_Ast *node = make_node(parser);
+    Pn_Ast *node = pn_make_node(parser);
     if (! node) { frame->state = PN_PARSER_STATE_ALLOC_FAIL; return; }
 
     *parent_frame->node_attach_point = node;
@@ -1142,7 +1140,7 @@ static void pn_push_frame (Pn_Parser parser, Pn_Parselet parselet) {
     parser->event.as.node = node;
 }
 
-static void pop_frame (Pn_Parser parser) {
+static void pn_pop_frame (Pn_Parser parser) {
     if (parser->frames_count == 1) {
         parser->event.type = PN_EVENT_EOF;
         parser->frames[0].state = PN_PARSER_STATE_EOF;
@@ -1194,10 +1192,10 @@ Pn_Parser pn_new_with_alloc (char *buf, int buf_len, int make_ast, Pn_Allocators
 
     // Push the root frame "manually" for convenience. No enter/exit events are emitted for this node.
     {
-        if (! make_node_pool(parser)) { pn_free(parser); return NULL; }
+        if (! pn_make_node_pool(parser)) { pn_free(parser); return NULL; }
 
         Pn_Parselet_Frame *frame = &parser->frames[parser->frames_count++];
-        frame->node = make_node(parser);
+        frame->node = pn_make_node(parser);
         if (! frame->node) { pn_free(parser); return NULL; }
 
         frame->state             = PN_PARSER_STATE_PARSING_BLOCKS;
@@ -1247,20 +1245,20 @@ Pn_Event *pn_next (Pn_Parser parser) {
 REPEAT_SWITCH:
     switch (frame->state) {
     case PN_PARSER_STATE_EOF:       parser->event.type = PN_EVENT_EOF; break;
-    case PN_PARSER_STATE_NODE_EXIT: pop_frame(parser); break;
+    case PN_PARSER_STATE_NODE_EXIT: pn_pop_frame(parser); break;
 
     case PN_PARSER_STATE_PARSING_BLOCKS:
     case PN_PARSER_STATE_PARSING_BLOCKS_AND_CALL_BEFORE_POP: {
         Pn_Parselet P = pn_get_block_parselet(parser);
-        if (! P) { pop_frame(parser); }
-        else if (pn_match_token(pn_peek_token(lex, 1), frame->delim, frame->delim_len)) { pop_frame(parser); pn_advance_to_next_line(lex); }
+        if (! P) { pn_pop_frame(parser); }
+        else if (pn_match_token(pn_peek_token(lex, 1), frame->delim, frame->delim_len)) { pn_pop_frame(parser); pn_advance_to_next_line(lex); }
         else { pn_push_frame(parser, P); }
     } break;
 
     case PN_PARSER_STATE_PARSING_INLINES: {
         Pn_Parselet P = get_inline_parselet(parser);
-        if (! P) pop_frame(parser);
-        else if (pn_match_token_eq(pn_peek_token(lex, 1), frame->delim, frame->delim_len)) { pop_frame(parser); pn_eat_token(lex); }
+        if (! P) pn_pop_frame(parser);
+        else if (pn_match_token_eq(pn_peek_token(lex, 1), frame->delim, frame->delim_len)) { pn_pop_frame(parser); pn_eat_token(lex); }
         else if (P == pn_parse_text) P(parser, &parser->lexer, frame);
         else pn_push_frame(parser, P);
     } break;
@@ -1269,7 +1267,7 @@ REPEAT_SWITCH:
         Pn_Parser_State S = frame->parselet(parser, lex, frame);
         int parselet_has_pushed_frame = (frame != &parser->frames[parser->frames_count - 1]);
         if (S == PN_PARSER_STATE_CURRENT || parselet_has_pushed_frame) break;
-        else if (S == PN_PARSER_STATE_NODE_EXIT) pop_frame(parser);
+        else if (S == PN_PARSER_STATE_NODE_EXIT) pn_pop_frame(parser);
         else frame->state = S;
 
         if (parser->event.type == PN_EVENT_NONE) goto REPEAT_SWITCH;
