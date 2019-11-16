@@ -1066,7 +1066,7 @@ static Pn_Parselet pn_get_block_parselet (Pn_Parser parser) {
     return pn_parse_paragraph;
 }
 
-static Pn_Parselet get_inline_parselet (Pn_Parser parser) {
+static Pn_Parselet pn_get_inline_parselet (Pn_Parser parser) {
     Pn_Lexer *lex = &parser->lexer;
     int S         = parser->flags & PN_PARSER_FLAG_STRICT_FORMAT_MODE;
     int F         = S || parser->flags & PN_PARSER_FLAG_FORMAT_MODE;
@@ -1256,7 +1256,7 @@ REPEAT_SWITCH:
     } break;
 
     case PN_PARSER_STATE_PARSING_INLINES: {
-        Pn_Parselet P = get_inline_parselet(parser);
+        Pn_Parselet P = pn_get_inline_parselet(parser);
         if (! P) pn_pop_frame(parser);
         else if (pn_match_token_eq(pn_peek_token(lex, 1), frame->delim, frame->delim_len)) { pn_pop_frame(parser); pn_eat_token(lex); }
         else if (P == pn_parse_text) P(parser, &parser->lexer, frame);
