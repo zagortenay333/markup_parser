@@ -269,7 +269,7 @@ static void parse_meta (Emitter *emitter, Pn_Ast *node, int is_block) {
     } else if (is_block && match("table_style_transparent", e->as.token)) {
         append(emitter, "class='table-style-transparent'>");
     } else if (is_block && match(">", e->as.token)) {
-        node->type = -1; // Mark for on_exit().
+        node->type = -1; // Mark for on_node_exit().
         append(emitter, "><details><summary>");
         while ((e = pn_next(emitter->parser))->type == PN_EVENT_TEXT_META) append_tok(emitter, e->as.token);
         append(emitter, "</summary>");
@@ -278,7 +278,7 @@ static void parse_meta (Emitter *emitter, Pn_Ast *node, int is_block) {
     }
 }
 
-static void on_enter (Emitter *emitter, Pn_Ast *node) {
+static void on_node_enter (Emitter *emitter, Pn_Ast *node) {
     switch (node->type) {
     default: break;
     case PN_AST_PARAGRAPH:           append(emitter, "<p>"); break;
@@ -340,7 +340,7 @@ static void on_enter (Emitter *emitter, Pn_Ast *node) {
     }
 }
 
-static void on_exit (Emitter *emitter, Pn_Ast *node) {
+static void on_node_exit (Emitter *emitter, Pn_Ast *node) {
     switch (node->type) {
     default: break;
     case PN_AST_PARAGRAPH:             append(emitter, "</p>"); break;
@@ -398,8 +398,8 @@ static void mainloop (Emitter *emitter) {
         switch (e->type) {
         case PN_EVENT_EOF:           return;
         case PN_EVENT_ALLOC_FAIL:    return;
-        case PN_EVENT_NODE_ENTER:    on_enter(emitter, e->as.node); break;
-        case PN_EVENT_NODE_EXIT:     on_exit(emitter, e->as.node); break;
+        case PN_EVENT_NODE_ENTER:    on_node_enter(emitter, e->as.node); break;
+        case PN_EVENT_NODE_EXIT:     on_node_exit(emitter, e->as.node); break;
         case PN_EVENT_TABLE_ROW_END: append(emitter, "</tr>\n\n<tr>\n"); break;
         case PN_EVENT_TEXT:          append_tok(emitter, e->as.token); break;
         default:                     break;
