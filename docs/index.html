@@ -93,13 +93,13 @@
 
             function insert_content () {
 insert_markup(`
-|--------------------------------------
-| **WARNING:** Do not paste random text from other sites into the boxes below.|
-  It's possible to execute random code that way.|
+: WARNING
+  Do not paste random text into the boxes below. It's possible to execute random code that way.|
+  Paste this into a box to see it in action: \`<<javascript:alert('Hi there!'):: Click Me!>>\`.
 
-  To see it in action paste this into a box below: \`<<javascript:alert('Hi there!'):: Click Me!>>\`.
-|---------------------------------------
-| Source code: <<https://github.com/zagortenay333/markup_parser>>
+=======================================
+
+Source code: <<https://github.com/zagortenay333/markup_parser>>
 
 =======================================
 `);
@@ -157,18 +157,16 @@ Ph’nglui mglw’nafh Cthulhu R’lyeh wgah-nagl fhtagn.
 
 #1 Azathoth
 #1.1 Nyarlathotep
-#1.1 Yog-Sothoth
-#1.1.1 Cthulhu
-#1.1.1.1 Dagon
+#1.1.1 Yog-Sothoth
+#1.1.1.1 Cthulhu
+#1.1.1.1.1 Dagon
 `);
 
 insert_markup("===========================================================================");
 insert_markup("#4. Separators", "separators");
 insert_editor(`\
-A separator is a leaf block (it doesn't contain anything).
-It begins with 3 or more '=' characters.
-
-===
+Separators are introduced with at least 3 '='.
+==============================================
 `);
 
 insert_markup("===========================================================================");
@@ -206,36 +204,28 @@ insert_markup(`\
 
 insert_markup("#6.1. List Variants", "list_variants");
 insert_editor(`\
-We got different types of lists folks:
+Use '-' for simple bullet lists:
 
-=======================================
-
-Use the '-' marker for simple bullet lists:
 - Item 1
   - Item 1.1
-
-    Any block can be contained here.
 - Item 2
 
-=======================================
-
 Use a number followed by a '.' for ordered lists:
+
 1. Necronomicon
 2. Pnakotic Manuscripts
 3. Book of Eibon
 4. Von Unaussprechlichen Kulten
 5. De Vermis Mysteriis
 
-=======================================
-
 Use '[' then space or 'x' then ']' for checkbox lists:
+
 [x] Graduate from Miskatonic University.
 [ ] Get a hold of the Necronomicon.
 [ ] Make some Yog-Babies.
 
-=======================================
-
 Use '--' for a list with invisible markers:
+
 -- Item 1
   -- Item 1.1
 -- Item 1
@@ -266,66 +256,56 @@ a sequence of consecutive non-blank lines).
 insert_markup("===========================================================================");
 insert_markup("#8. Tables", "tables");
 insert_editor(`\
-- A table is a block that contains a sequence of table-
-  cells.
-- A table-cell is a block that can contain any other block
-  using indentation.
+Tables are blocks made up of cells and row dividers.
 
-=======================================
+Cells start with '|', and row dividers start with '|-'.|
+Cells are like lists, they contain other blocks via indentation.
 
-Textually, a table is a sequence of lines each starting with 1 '|' char.
+The first line is empty. You can put a long '----' divider on it.|
+The last table item can either be a cell or row divider.
 
-- The first line doesn't have any content; it can be used
-  to put a long '----' separator.
-- Lines starting with '|-' indicate the end of a row.
-- The remaining lines starting with '|' begin table-cells.
-- The last line can either be a table-cell or a row
-  divider.
-- The first row determines the number of cells per row.
-- Extra cells are ignored, missing cells are auto inserted.
+The first row determines the number of cells per row.|
+Extra cells are ignored, missing cells are auto inserted.
 
-=======================================
-
-|--------------------------------------
+|--------------------------------
 | Row 1 Cell 1
 | Row 1 Cell 2
-|--------------------------------------
+|--------------------------------
 | Row 2 Cell 1
 | Row 2 Cell 2
-|--------------------------------------
+|--------------------------------
 | Row 3 Cell 1 -- missing cell
-|--------------------------------------
+|--------------------------------
 | Row 4 Cell 1
 | Row 4 Cell 2
 | Row 4 Cell 3 -- extra cell
-|--------------------------------------
+|--------------------------------
 
-=======================================
 
-Cells can contain any other blocks:
+Here is an example of a cell containing a bunch of stuff:
 
-|--------------------------------------
+|--------------------------------
 | Here is some multiline content:
 
   > With a blockquote.
-    - And a list follow by a separator.
+    - And a list.
 
   ===
 
   [x] How about a task list.
   [ ] How about a task list.
 | Row 1 Cell 2
-|--------------------------------------
+|--------------------------------
 | Row 2 Cell 1
 | A table within a table:
-  |------------------
+  |-----
   | A
   | B
-  |------------------
+  |-----
   | C
   | D
-  |------------------
-|--------------------------------------
+  |-----
+|--------------------------------
 `);
 
 insert_markup("#8.1. Cell Merging", "cell_merging");
@@ -338,40 +318,35 @@ or a single '\\*' char which means max width/height.
 
 The height as well as the ']' are optional.
 
-|--------------------------------------
+|-------------------
 |*|2] R1 C1
 | R1 C2
 | R1 C3
-|--------------------------------------
+|-------------------
 | R2 C1
 | R2 C2
 | R2 C3
-|--------------------------------------
+|-------------------
 | R3 C1
 | R3 C2
 |1|2] R3 C3
-|--------------------------------------
+|-------------------
 |2] R4 C1
 | R4 C2
 | R4 C3
-|--------------------------------------
+|-------------------
 `);
 
 insert_markup("===========================================================================");
 insert_markup("#9. Meta Elements", "meta_elements");
 insert_markup(`\
-Meta elements can contain any other elements (including other meta elements)|
-and have arbitrary text (metadata) attached to them.
-
-They are used to extend the syntax of the markup language, and there are|
-3 different types.
-
-* This page only demonstrates fairly simple uses of meta elements.
+These are element onto which you can attach arbitrary text.|
+They're used to extend the syntax of the language, and there are 3 different types.
 `);
 
 insert_markup("#9.1. List Meta", "list_meta");
 insert_editor(`\
-A list-like block which is introduced by 1 ':' character:
+A list-like block which is introduced with a ':'.
 
 : fg slategrey
   Like a list-item it can contain any elements
@@ -382,28 +357,25 @@ metadata can be added using this type of meta element.
 
 It's also possible to begin the content on the same line as the metadata by adding another ':' char.
 
-=======================================
-
 : TIP
   :fg olive: Let me tell you about our lord and savior
   :img https\\://upload.wikimedia.org/wikipedia/commons/2/28/Azathoth.jpg
 
-=======================================
+Here is a list-like meta used to implement containers:
 
 :> Knock knock...
   :> Who's there?
-    *Something much worse than the Spanish inquisition.
+    *[[fg olive: It ain't Mario.]]*
     :img https\\://vignette.wikia.nocookie.net/lovecraft/images/9/92/Shg2_.jpg/revision/latest/scale-to-width-down/480?cb=20131218213716
 `);
 
 insert_markup("#9.2. Block Meta", "block_meta");
 insert_editor(`\
-This is a also a block level element, but instead of indentation it uses \
-3 or more open/close brackets '[]'.
+This is a also a block meta, but instead of indentation it uses \
+3 or more open/close brackets.
 
-The metadata can also be multiline and it's terminated by 1 or more ':' chars.
-
-=======================================
+The metadata begins right after the opening bracket and ends at a ':'.
+So the metadata can span multiple lines.
 
 [[[ NOTE (H. P. Lovecraft):
 [[[ table_style_transparent:
@@ -424,29 +396,16 @@ The metadata can also be multiline and it's terminated by 1 or more ':' chars.
 ]]]
 ]]]
 
-=======================================
+Here is a blockquote containing a meta block:
 
-> Here is a blockquote containing a meta block.
-  [[[ TODO
+> [[[ TODO
       (Or not todo)
-      :: -- The rest of the line after the ':' is ignored.
+      : Note that the rest of the line after the ':' is ignored.
 
   [x] Summon Yog-Sothoth
   [ ] Have a baby with Yog-Sothoth...
 
   ]]] -- The rest of the line after the ']' is ignored.
-
-=======================================
-
-: WARNING (MY PRECIOUS!!!)
-  [[[ table_style_transparent:
-  |--------
-  | :img https\\://vignette.wikia.nocookie.net/lovecraft/images/1/14/Dagon_%28Borja_Pindado%29.jpg/revision/latest/top-crop/width/240/height/240?cb=20190729044052
-  | I cannot think of the deep sea without shuddering at
-    the nameless things that may at this very moment be
-    crawling and floundering on its slimy bed...
-  |--------
-  ]]]
 `);
 
 insert_markup("#9.3. Inline Meta", "inline_meta");
@@ -455,82 +414,64 @@ This is an inline element (inlines are described below).
 
 It uses 2 open/close brackets '[]' to attach some metadata to a piece of text.
 
-=======================================
-
 - Nobody:
-- Cthulhu worshippers: [[fg #aaddaa: Ph'nglui mglw'nafh
-  Cthulhu R'lyeh wgah'nagl fhtagn]]
+- Lovecraft: [[fg olive: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn]]
 
-=======================================
+Here we some nested elements:
 
-: sidenote A passage from the Necronomicon\\:
-  [[fg #aaddaa: Yog-Sothoth is the gate. [[fg olive:
-  Yog-Sothoth is the key and guardian of the gate.]]
-  [[spoiler: Past, present, future, all are one in
-  Yog-Sothoth.]] ]]
+[[fg #aaddaa: Yog-Sothoth is the gate. [[fg olive: Yog-Sothoth is the
+key and guardian of the gate.]] [[spoiler: Past, present, future, all
+are one in Yog-Sothoth.]] ]]
 `);
 
 insert_markup("===========================================================================");
 insert_markup("#10. Format Block", "format_block");
 insert_editor(`\
-Inside a format block only paragraphs, blank paragraphs and meta elements\
- are recognized
+Inside a format block most markup is disabled. Only paragraphs, blank
+paragraphs and meta elements work.
 
 The block begins with at least 3 '\\\`' (backticks) and ends at \
-the next line starting with at least 3 '\\\`'.
-
-=======================================
+the next line starting with at least 3 '\\\`':
 
 \`\`\`
-Here is a paragraph inside a format block. No more
-*emphasized* text.
+Here is a paragraph inside a format block. No more *emphasized* text.
 
-- Notice that the lists and other blocks are now escaped.
+- Lists and other blocks are now disabled.
 
-> No blockquotes either.
+> No more blockquotes.
 \`\`\`
 
-=======================================
+Here is a meta element inside a format block:
 
 \`\`\`
-A format block allows you to use all meta elements.
-
-[[[ mark olive ::::::::::::::::::::::::
+[[[ mark olive:
 for (int i = 0; i < 100; ++i) {
    printf([[fg #aaddaa:"I won't mess with Ulthar cats!"]]);
 }
-]]] :::::::::::::::::::::::::::::::::::
+]]]
 
 \\:fg slategray: Escape meta elements with a '\\\\' char.
 \`\`\`
 
-=======================================
+You can put some text right after the opening delimiter to serve as metadata:
 
-\`\`\`\\
-If you want to escape the meta elements too, then put
-a '\\' char after the opening delimiter.
-
-:fg slategray: No more meta.
-\`\`\`
-
-=======================================
-
-\`\`\`cthulhu-lang
-:fg slategray:
-  // The text that appears on the opening line can be used
-  // to give meaning to the text inside.
-  // Perhaps to indicate the type of programming language.
-
+\`\`\`C
 int main (void) {
     return EXIT_SUCCESS_ENCOUNTERED_NO_SHOGGOTHS;
 }
+\`\`\`
+
+Place 1 backslash '\\\\' after the opening delimiter to disable metas completely:
+
+\`\`\`\\
+:fg slategray: No more meta.
 \`\`\`
 `);
 
 insert_markup("===========================================================================");
 insert_markup("#11. Comments", "comments");
 insert_editor(`\
-A comment is a contiguous sequence of text lines starting with 2 '/' chars.
+A comment is a sequence of lines starting with 2 '/' chars.
 
 // Here is a paragraph that is commented out.
 // It cannot be seen in the output.
@@ -564,6 +505,8 @@ For example:
   delim and will be rendered as just regular square |
   brackets. The opening '\\[[' ends at the end of the |
   string.
+
+Here are all the inlines:
 `, "inline_elements");
 
 insert_editor(`\
@@ -578,11 +521,11 @@ use a closing delimiter, indicating the extent of inline elements.
 
 This paragraph is not bold.
 
-=======================================
+=============================================================================
 
 **\`Strikethrough text\`** uses 2 '~' chars: ~~some text.~~
 
-=======================================
+=============================================================================
 
 **\`Links\`** use 2 or more '\\<' and '\\>' chars: <<link.com>>.
 
@@ -593,31 +536,31 @@ longer delimiter: <<<link.com ::: The Link>>>.
 
 Links can't contain other inline elements.
 
-=======================================
+=============================================================================
 
 **\`Line breaks\`** are added by putting a single '|' right before the end of a line.|
 This text is on another line.
 
-=======================================
+=============================================================================
 
 **\`Supscripts\`** use 1 '\\^' and **\`subscripts\`** use 2 '\\^'.
 
 10^to the 2^ and H^^2^^O.
 
-=======================================
+=============================================================================
 
 **\`Inline meta\`** elements were discussed above. The delimiters are '\\[\\[' and ']]'.
 
 For example [[fg #aaddaa:: ~~here is some text~~]].|
 You could also [[spoiler:: make a spoiler]].
 
-=======================================
+=============================================================================
 
 **\`Inline format blocks\`** use 1 '\\\`' char:  \`*some text*\`.
 
 Meta nodes cannot be used here.
 
-=======================================
+=============================================================================
 
 **\`Escaping\`** inline delimiters can be done like \\*so\\*.
 `);

@@ -9,12 +9,11 @@ body {
 #sidebar {
     background-color: rgba(0, 0, 0, .5);
     border-right: 1px solid rgba(0, 0, 0, .4);
-    font-size: 14px;
     height: 100%;
     position: fixed;
     overflow: auto;
     box-sizing: border-box;
-    width: 250px;
+    width: 230px;
     padding: 0 0 0 1rem;
 } #sidebar a { text-decoration: none; }
 
@@ -24,7 +23,7 @@ body {
     margin-bottom: 3rem;
     padding: 0 2rem;
     overflow: auto;
-} #content > hr { margin: 4rem 0; }
+} #content > hr { margin: 2rem 0; }
 
 .input_output {
     display: flex;
