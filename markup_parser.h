@@ -10,7 +10,7 @@
 //
 // This parser can either create the full AST or just build one node at a time.
 //
-// Example (without making an ast):
+// Example (without making an AST):
 //     M_Parser *pn = m_new(input_buf, input_buf_len, make_ast=0);
 //
 //     while (1) {
@@ -65,7 +65,7 @@
 #define MARKUP_HEADER
 
 // =============================================================================
-// @@@ Header / Data
+// @@@ Header
 // =============================================================================
 typedef struct {
     void *(*malloc) (size_t); // These should behave like the regular C funcs.
@@ -217,15 +217,12 @@ typedef struct {
 
 typedef struct M_Parser *M_Parser;
 
-
-// =============================================================================
-// @@@ Header / Functions
-// =============================================================================
 M_Parser  m_new_with_alloc (char *buf, int buf_len, int make_ast, M_Allocators);
 M_Parser  m_new            (char *buf, int buf_len, int make_ast);
 void      m_free           (M_Parser);
 M_Ast    *m_get_root       (M_Parser);
 M_Event  *m_next           (M_Parser);
+
 
 #endif // MARKUP_HEADER
 
