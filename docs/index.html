@@ -95,7 +95,7 @@
 insert_markup(`
 : WARNING
   Do not paste random text into the boxes below. It's possible to execute random code that way.|
-  Paste this into a box to see it in action: \`<<javascript:alert('Hi there!'):: Click Me!>>\`.
+  Paste this into a box below to see it in action: \`<<javascript:alert('Hi there!'):: Click Me!>>\`.
 
 =======================================
 `);
@@ -108,13 +108,12 @@ You can edit the examples below to get the hang of it.
 
 Source code for the parser: <<https://github.com/zagortenay333/markup_parser>>
 
-A document is a sequence of *block elements* like paragraphs,|
-headers, bullet lists, etc.
+The markup is made up of blocks like paragraphs, headers, lists, etc.
 
 Some blocks can contain other blocks (for example, lists), some contain|
 text (paragraphs, headers, ...), and some have no content (separators.)
 
-Text can contain *inline elements* like ~~strikethrough text~~ or <<links>>.
+Text can contain inline elements like ~~strikethrough text~~ or <<links>>.
 `, "overview");
 
 insert_markup("===========================================================================");
