@@ -1,11 +1,11 @@
 #!/bin/bash
 
-emcc ../pnakotic_to_html.c \
-     -o empnakotic.js \
+emcc ../markup_to_html.c \
+     -o markup_parser.js \
      -O3 \
      -Wall \
      -Wextra \
      -Wnull-dereference \
      --emrun \
-     -s EXPORTED_FUNCTIONS='["_pnakotic_to_html", "_malloc", "_free"]' \
+     -s EXPORTED_FUNCTIONS='["_markup_to_html", "_malloc", "_free"]' \
      -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap", "UTF8ToString", "stringToUTF8", "lengthBytesUTF8"]'

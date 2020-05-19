@@ -1,7 +1,7 @@
-These tests are mainly intended for the `pnakotic.h` file.
+These tests are mainly intended for the `markup_parser.h` file.
 
 There is an `afl_dict` file for some afl fuzzing.
-When fuzzing, keep in mind that `pnakotic.h` expects valid utf-8 inputs.
+When fuzzing, keep in mind that `markup_parser.h` expects valid utf-8 inputs.
 
 ================================================================================
 
@@ -27,7 +27,7 @@ separated by a single space where:
 token1    either i (for node entered) or o (for node exited)
 token2    (unsigned int) indentation level of the node
 token3    (unsigned int) start-line if token1=i; otherwise end-line
-token4    node type (Pn_Ast_Type from `pnakotic.h` serialized)
+token4    node type (Pn_Ast_Type from `markup_parser.h` serialized)
 ```
 
 There can be more tokens depending on the type of the node. For now, only the

@@ -1,10 +1,9 @@
 body {
-    color: #BBA787;
-    background-color: #292929;
+    color: #AA895B;
+    background-color: #261D11;
     margin: 0;
     word-wrap: break-word;
     font-family: monospace;
-    font-size: 14px;
 }
 
 #sidebar {
@@ -73,14 +72,14 @@ body {
 /* ==============================================================================
  * Below is the styling for the markup only.
  * ============================================================================== */
-a  { color: #ab7967; }
-hr { margin: 2rem 0; border: 2px solid rgba(0, 0, 0, .5); }
+a  { color: #A4654E; }
+hr { margin: 2rem 0; border: 1px solid rgba(0, 0, 0, .5); }
 p  { margin: 1rem 0; }
 .blank-paragraph { margin: 0; }
 img { margin: 1rem .4rem; }
 
 h2, h3, h4, h5, h6 { margin-top: 3rem; }
-.header-tag { color: #ab7967; }
+.header-tag { color: #A4654E; }
 
 blockquote {
     margin: 1rem 0;
@@ -177,7 +176,7 @@ details > *:not(summary) {
     padding: 0 .6rem;
     border: 1px solid rgba(0, 0, 0, .7);
     background: rgba(0, 0, 0, .4);
-} .aside .title { color: #BBA787; background: rgba(255, 255, 255, .1); }
+} .aside .title { color: #AA895B; }
 
 .cthulhu-fhtagn {
     color: rgba(0, 0, 0, .8);

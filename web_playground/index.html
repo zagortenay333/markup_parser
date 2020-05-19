@@ -10,12 +10,11 @@
         <div id="content"></div>
 
         <script type="text/javascript">
-            id_counter = 0;
-            let pnakotic_to_html;
+            let markup_to_html;
 
             var Module = {
                 onRuntimeInitialized: function () {
-                    pnakotic_to_html = Module.cwrap('pnakotic_to_html', 'number', ['number', 'number']);
+                    markup_to_html = Module.cwrap('markup_to_html', 'number', ['number', 'number']);
                     insert_sidebar();
                     insert_content();
                 }
@@ -28,12 +27,12 @@
                 return template.content;
             }
 
-            function markup_to_html (markup) {
+            function parse (markup) {
                 let c_str_len = lengthBytesUTF8(markup);
                 let c_str     = Module._malloc(c_str_len + 1);
                 stringToUTF8(markup, c_str, c_str_len + 1);
 
-                let c_output = pnakotic_to_html(c_str, c_str_len);
+                let c_output = markup_to_html(c_str, c_str_len);
                 html         = UTF8ToString(c_output);
 
                 Module._free(c_str);
@@ -45,9 +44,10 @@
                 in_el = document.getElementById(input_id);
                 in_el.style.height = "5px";
                 in_el.style.height = in_el.scrollHeight + "px";
-                document.getElementById(output_id).innerHTML = markup_to_html(in_el.value);
+                document.getElementById(output_id).innerHTML = parse(in_el.value);
             }
 
+            let id_counter = 0;
             function insert_editor (default_text) {
                 id_counter++;
                 in_class  = `input${id_counter}`;
@@ -64,13 +64,13 @@
             }
 
             function insert_markup (markup, id) {
-                el = html_to_el(markup_to_html(markup), id);
+                el = html_to_el(parse(markup), id);
                 return document.getElementById('content').appendChild(el);
             }
 
             function insert_sidebar () {
                 s = document.getElementById('sidebar');
-                s.appendChild(html_to_el(markup_to_html(`
+                s.appendChild(html_to_el(parse(`
 1. <<#overview:: Overview>>
 2. <<#paragraphs:: Paragraphs>>
 3. <<#headers:: Headers>>
@@ -93,14 +93,13 @@
 
             function insert_content () {
 insert_markup(`
-: sidenote Security Note
-  Do not paste random text from other sites into the boxes below.|
+|--------------------------------------
+| **WARNING:** Do not paste random text from other sites into the boxes below.|
   It's possible to execute random code that way.|
 
   To see it in action paste this into a box below: \`<<javascript:alert('Hi there!'):: Click Me!>>\`.
-
-: sidenote Links
-  Source code: <<https://github.com/zagortenay333/pnakotic>>
+|---------------------------------------
+| Source code: <<https://github.com/zagortenay333/markup_parser>>
 
 =======================================
 `);
@@ -108,10 +107,10 @@ insert_markup(`
 insert_markup(`\
 #1. Overview
 
-This is a semi-formal specification of the pnakotic markup language.|
+This is an informal specification of a custom markup language.|
 You can edit the examples below to get the hang of it.
 
-A pnakotic document is a sequence of *block elements* like paragraphs,|
+A document is a sequence of *block elements* like paragraphs,|
 headers, bullet lists, etc.
 
 Some blocks can contain other blocks (for example, lists), some contain|
@@ -123,7 +122,7 @@ Text can contain *inline elements* like ~~strikethrough text~~ or <<links>>.
 insert_markup("===========================================================================");
 insert_markup("#2. Paragraphs", "paragraphs");
 insert_editor(`\
-A paragraph is a block consisting of a sequence of non-blank text lines.
+Paragraph are blocks consisting of a sequence of non-blank text lines.
 
 Here is another one separated by the blank line above.
 
@@ -133,15 +132,12 @@ A sequence of blank lines is a blank paragraph.
 insert_markup("===========================================================================");
 insert_markup("#3. Headers", "headers");
 insert_editor(`\
-A header is similar to a paragraph; a block that contains a sequence \
-of non-blank text lines.
+Header are basically paragraphs that can be resized.
 
 1. A header begins with 1 or more '\#' characters.
-2. A single optional space is allowed before the text (like
-   with most other blocks.)
+2. A single optional space is allowed before the text.
 3. The level (size) of the header is given either by the
-   number of '\#' chars or by a sequence of numbers
-   separated by a dot.
+   number of '\#' chars or by a sequence of numbers separated by a dot.
 
 =======================================
 
@@ -153,14 +149,15 @@ of non-blank text lines.
 
 =======================================
 
-### A header can consist of  *multiple* lines, and|
-the text can have \`inline elements\` like in a paragraph.
+### Ph’nglui mglw’nafh Cthulhu R’lyeh wgah-nagl fhtagn.
+Ph’nglui mglw’nafh Cthulhu R’lyeh wgah-nagl fhtagn.
+Ph’nglui mglw’nafh Cthulhu R’lyeh wgah-nagl fhtagn.
 
 =======================================
 
 #1 Azathoth
-#1.1 Yog-Sothoth
 #1.1 Nyarlathotep
+#1.1 Yog-Sothoth
 #1.1.1 Cthulhu
 #1.1.1.1 Dagon
 `);
@@ -366,7 +363,7 @@ insert_markup(`\
 Meta elements can contain any other elements (including other meta elements)|
 and have arbitrary text (metadata) attached to them.
 
-They are used to extend the syntax of the pnakotic language, and there are|
+They are used to extend the syntax of the markup language, and there are|
 3 different types.
 
 * This page only demonstrates fairly simple uses of meta elements.
@@ -476,12 +473,10 @@ It uses 2 open/close brackets '[]' to attach some metadata to a piece of text.
 insert_markup("===========================================================================");
 insert_markup("#10. Format Block", "format_block");
 insert_editor(`\
-This is a block that changes the way it's text is interpreted.
+Inside a format block only paragraphs, blank paragraphs and meta elements\
+ are recognized
 
-The only elements that are recognized are paragraphs, blank paragraphs \
-and meta elements.
-
-The block begins with at least 3 '\\\`' (backtick) chars and ends at \
+The block begins with at least 3 '\\\`' (backticks) and ends at \
 the next line starting with at least 3 '\\\`'.
 
 =======================================
@@ -535,7 +530,7 @@ int main (void) {
 insert_markup("===========================================================================");
 insert_markup("#11. Comments", "comments");
 insert_editor(`\
-A comment is a block consisting of a sequence of text lines starting with 2 '/' chars.
+A comment is a contiguous sequence of text lines starting with 2 '/' chars.
 
 // Here is a paragraph that is commented out.
 // It cannot be seen in the output.
@@ -548,17 +543,17 @@ insert_markup("=================================================================
 insert_markup(`\
 #12. Inline Elements
 
-Inline elements are contained within text and they can|
-contain other inline elements.
+Inline elements are sections of text that can be styled.
 
-An inline element extends from an opening delimiter up to|
-the closing delimiter or the end of the block that contains the text.
+Inlines extend from an opening delimiter up to a closing delimiter|
+or the end of the block that contains the text.
 
-If the open/close delimiters use the same char, then they|
+If the open/close delimiters use the same character, then they|
 must have the same length.
 
 A closing delimiter can only pair up with an opening delimiter|
 if they both appear on the same level of nesting.|
+
 For example:
 - In the string \`*A~~B*C\`, the second '\\*' is an opening|
   delim because it's nested inside the opening '\\~~'.
@@ -628,6 +623,6 @@ Meta nodes cannot be used here.
 `);
             }
         </script>
-        <script async type="text/javascript" src="empnakotic.js"></script>
+        <script async type="text/javascript" src="markup_parser.js"></script>
     </body>
 </html>

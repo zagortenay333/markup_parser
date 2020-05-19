@@ -10,8 +10,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define PNAKOTIC_IMPLEMENTATION
-#include "pnakotic.h"
+#define MARKUP_IMPLEMENTATION
+#include "markup_parser.h"
 
 
 // =============================================================================
@@ -24,7 +24,7 @@ typedef struct String_Fragment {
 } String_Fragment;
 
 typedef struct {
-    Pn_Parser parser;
+    M_Parser parser;
     String_Fragment *first_fragment, *last_fragment;
     int fragment_capacity;
 
@@ -59,7 +59,7 @@ static char *finalize (Emitter *emitter) {
         free(tmp);
     }
 
-    pn_free(emitter->parser);
+    m_free(emitter->parser);
     if (buf) buf[buf_len] = '\0';
     return buf;
 }
@@ -100,7 +100,7 @@ static void append (Emitter *emitter, char *buf) {
 }
 
 // Just a minimal sanitization to allow typing stuff like <>.
-static void append_tok (Emitter *emitter, Pn_Token *token) {
+static void append_tok (Emitter *emitter, M_Token *token) {
     switch (token->type) {
     case '<': for (int i = 0; i < token->txt.len; ++i) append(emitter, "&lt;"); break;
     case '>': for (int i = 0; i < token->txt.len; ++i) append(emitter, "&gt"); break;
@@ -144,11 +144,11 @@ static void on_link_enter (Emitter *emitter) {
     append(emitter, "<a href=\"");
 
     while (1) {
-        Pn_Event *e = pn_next(emitter->parser);
+        M_Event *e = m_next(emitter->parser);
         switch (e->type) {
         default: break;
 
-        case PN_EVENT_NODE_EXIT: {
+        case M_EVENT_NODE_EXIT: {
             if (! found_content) {
                 append(emitter, "\">");
                 append_n(emitter, e->as.node->as.link.ref.buf, e->as.node->as.link.ref.len);
@@ -156,17 +156,17 @@ static void on_link_enter (Emitter *emitter) {
             append(emitter, "</a>");
         } return;
 
-        case PN_EVENT_TEXT_LINK_ALIAS: {
+        case M_EVENT_TEXT_LINK_ALIAS: {
             if (! found_content) { found_content = 1; append(emitter, "\">"); }
             append_tok(emitter, e->as.token);
         } break;
 
-        case PN_EVENT_TEXT_LINK_REF: append_tok(emitter, e->as.token); break;
+        case M_EVENT_TEXT_LINK_REF: append_tok(emitter, e->as.token); break;
         }
     }
 }
 
-static void on_table_cell_enter (Emitter *emitter, Pn_Ast *node) {
+static void on_table_cell_enter (Emitter *emitter, M_Ast *node) {
     append(emitter, "<td");
 
     if (node->as.table_cell.width > 1) {
@@ -186,28 +186,28 @@ static void on_table_cell_enter (Emitter *emitter, Pn_Ast *node) {
     append(emitter, ">");
 }
 
-// A little wrapper around pn_next for processing meta text.
-static Pn_Event *meta_next (Emitter *emitter) {
-    Pn_Event *e = pn_next(emitter->parser);
-    if (e->type != PN_EVENT_TEXT_META) return NULL;
+// A little wrapper around m_next for processing meta text.
+static M_Event *meta_next (Emitter *emitter) {
+    M_Event *e = m_next(emitter->parser);
+    if (e->type != M_EVENT_TEXT_META) return NULL;
 
-    while (e->as.token->type == PN_TOKEN_WHITESPACE || e->as.token->type == PN_TOKEN_NEWLINE) {
-        e = pn_next(emitter->parser);
-        if (e->type != PN_EVENT_TEXT_META) return NULL;
+    while (e->as.token->type == M_TOKEN_WHITESPACE || e->as.token->type == M_TOKEN_NEWLINE) {
+        e = m_next(emitter->parser);
+        if (e->type != M_EVENT_TEXT_META) return NULL;
     }
 
     return e;
 }
 
 static void parse_color (Emitter *emitter) {
-    Pn_Event *e = meta_next(emitter);
+    M_Event *e = meta_next(emitter);
     if (!e) return;
 
     if (e->as.token->type != '#') {
         append_tok(emitter, e->as.token);
     } else {
-        e = pn_next(emitter->parser);
-        if (e->type == PN_EVENT_TEXT_META) {
+        e = m_next(emitter->parser);
+        if (e->type == M_EVENT_TEXT_META) {
             append(emitter, "#");
             append_tok(emitter, e->as.token);
         } else {
@@ -216,14 +216,14 @@ static void parse_color (Emitter *emitter) {
     }
 }
 
-static int match (char *str, Pn_Token *token) {
+static int match (char *str, M_Token *token) {
     int str_len = strlen(str);
     if (token->txt.len != str_len) return 0;
     return !strncmp(str, token->txt.buf, token->txt.len);
 }
 
-static void parse_meta (Emitter *emitter, Pn_Ast *node, int is_block) {
-    Pn_Event *e = meta_next(emitter);
+static void parse_meta (Emitter *emitter, M_Ast *node, int is_block) {
+    M_Event *e = meta_next(emitter);
 
     if (! e) {
         append(emitter, ">");
@@ -241,78 +241,78 @@ static void parse_meta (Emitter *emitter, Pn_Ast *node, int is_block) {
         append(emitter, "; background: rgba(255, 255, 255, .05);'>");
     } else if (is_block && match("NOTE", e->as.token)) {
         append(emitter, " class='note'><div class='title'>Note ");
-        while ((e = pn_next(emitter->parser))->type == PN_EVENT_TEXT_META) append_tok(emitter, e->as.token);
+        while ((e = m_next(emitter->parser))->type == M_EVENT_TEXT_META) append_tok(emitter, e->as.token);
         append(emitter, "</div>");
     } else if (is_block && match("TODO", e->as.token)) {
         append(emitter, " class='todo'><div class='title'>Todo ");
-        while ((e = pn_next(emitter->parser))->type == PN_EVENT_TEXT_META) append_tok(emitter, e->as.token);
+        while ((e = m_next(emitter->parser))->type == M_EVENT_TEXT_META) append_tok(emitter, e->as.token);
         append(emitter, "</div>");
     } else if (is_block && match("TIP", e->as.token)) {
         append(emitter, " class='tip'><div class='title'>Tip ");
-        while ((e = pn_next(emitter->parser))->type == PN_EVENT_TEXT_META) append_tok(emitter, e->as.token);
+        while ((e = m_next(emitter->parser))->type == M_EVENT_TEXT_META) append_tok(emitter, e->as.token);
         append(emitter, "</div>");
     } else if (is_block && match("WARNING", e->as.token)) {
         append(emitter, " class='warning'><div class='title'>Warning ");
-        while ((e = pn_next(emitter->parser))->type == PN_EVENT_TEXT_META) append_tok(emitter, e->as.token);
+        while ((e = m_next(emitter->parser))->type == M_EVENT_TEXT_META) append_tok(emitter, e->as.token);
         append(emitter, "</div>");
     } else if (is_block && match("sidenote", e->as.token)) {
         append(emitter, " class='aside'><div class='title'>");
-        while ((e = pn_next(emitter->parser))->type == PN_EVENT_TEXT_META) append_tok(emitter, e->as.token);
+        while ((e = m_next(emitter->parser))->type == M_EVENT_TEXT_META) append_tok(emitter, e->as.token);
         append(emitter, "</div>");
     } else if (match("spoiler", e->as.token)) {
         append(emitter, " class='spoiler'>");
-        while ((e = pn_next(emitter->parser))->type == PN_EVENT_TEXT_META) append_tok(emitter, e->as.token);
+        while ((e = m_next(emitter->parser))->type == M_EVENT_TEXT_META) append_tok(emitter, e->as.token);
     } else if (match("img", e->as.token)) {
         append(emitter, "><img src='");
-        while ((e = pn_next(emitter->parser))->type == PN_EVENT_TEXT_META) append_tok(emitter, e->as.token);
+        while ((e = m_next(emitter->parser))->type == M_EVENT_TEXT_META) append_tok(emitter, e->as.token);
         append(emitter, "'>");
     } else if (is_block && match("table_style_transparent", e->as.token)) {
         append(emitter, "class='table-style-transparent'>");
     } else if (is_block && match(">", e->as.token)) {
         node->type = -1; // Mark for on_node_exit().
         append(emitter, "><details><summary>");
-        while ((e = pn_next(emitter->parser))->type == PN_EVENT_TEXT_META) append_tok(emitter, e->as.token);
+        while ((e = m_next(emitter->parser))->type == M_EVENT_TEXT_META) append_tok(emitter, e->as.token);
         append(emitter, "</summary>");
     } else {
         append(emitter, ">");
     }
 }
 
-static void on_node_enter (Emitter *emitter, Pn_Ast *node) {
+static void on_node_enter (Emitter *emitter, M_Ast *node) {
     switch (node->type) {
     default: break;
-    case PN_AST_PARAGRAPH:           append(emitter, "<p>"); break;
-    case PN_AST_PARAGRAPH_BLANK:     append(emitter, "<p class=\"blank-paragraph\">"); break;
-    case PN_AST_LINK:                on_link_enter(emitter); break;
-    case PN_AST_FORMAT_BLOCK:        append(emitter, "<pre class=\"format\">"); break;
-    case PN_AST_FORMAT_BLOCK_STRICT: append(emitter, "<pre class=\"format-strict\">"); break;
-    case PN_AST_FORMAT_INLINE:       append(emitter, "<span class=\"format-inline\">"); break;
-    case PN_AST_BLOCKQUOTE:          append(emitter, "<blockquote>"); break;
-    case PN_AST_STRIKETHROUGH:       append(emitter, "<s>"); break;
-    case PN_AST_LINE_BREAK:          append(emitter, "<br>"); break;
-    case PN_AST_SEPARATOR:           append(emitter, "<hr>"); break;
-    case PN_AST_TABLE:               append(emitter, "<table width=\"100%\">"); break;
-    case PN_AST_TABLE_CELL:          on_table_cell_enter(emitter, node); break;
-    case PN_AST_SUB_SCRIPT:          append(emitter, "<sub>"); break;
-    case PN_AST_SUP_SCRIPT:          append(emitter, "<sup>"); break;
-    case PN_AST_LIST:                append(emitter, "<ul class=\"no-marker\">"); break;
-    case PN_AST_LIST_ITEM:           append(emitter, "<li>"); break;
-    case PN_AST_LIST_BY_BULLET:      append(emitter, "<ul>"); break;
-    case PN_AST_LIST_BY_BULLET_ITEM: append(emitter, "<li>"); break;
-    case PN_AST_LIST_BY_NUMBER:      append(emitter, "<ol>"); break;
-    case PN_AST_LIST_BY_NUMBER_ITEM: append(emitter, "<li>"); break;
-    case PN_AST_LIST_BY_CHECKBOX:    append(emitter, "<ul class=\"by-checkbox\">"); break;
-    case PN_AST_META_INLINE:         append(emitter, "<span "); parse_meta(emitter, node, 0); break;
-    case PN_AST_META_TREE:           append(emitter, "<div "); parse_meta(emitter, node, 1); break;
-    case PN_AST_META_BLOCK:          append(emitter, "<div "); parse_meta(emitter, node, 1); break;
+    case M_AST_PARAGRAPH:           append(emitter, "<p>"); break;
+    case M_AST_PARAGRAPH_BLANK:     append(emitter, "<p class=\"blank-paragraph\">"); break;
+    case M_AST_LINK:                on_link_enter(emitter); break;
+    case M_AST_FORMAT_BLOCK:        append(emitter, "<pre class=\"format\">"); break;
+    case M_AST_FORMAT_BLOCK_STRICT: append(emitter, "<pre class=\"format-strict\">"); break;
+    case M_AST_FORMAT_INLINE:       append(emitter, "<span class=\"format-inline\">"); break;
+    case M_AST_BLOCKQUOTE:          append(emitter, "<blockquote>"); break;
+    case M_AST_STRIKETHROUGH:       append(emitter, "<s>"); break;
+    case M_AST_LINE_BREAK:          append(emitter, "<br>"); break;
+    case M_AST_SEPARATOR:           append(emitter, "<hr>"); break;
+    case M_AST_TABLE:               append(emitter, "<table width=\"100%\">"); break;
+    case M_AST_TABLE_CELL:          on_table_cell_enter(emitter, node); break;
+    case M_AST_SUB_SCRIPT:          append(emitter, "<sub>"); break;
+    case M_AST_SUP_SCRIPT:          append(emitter, "<sup>"); break;
+    case M_AST_LIST:                append(emitter, "<ul class=\"no-marker\">"); break;
+    case M_AST_LIST_ITEM:           append(emitter, "<li>"); break;
+    case M_AST_LIST_BY_BULLET:      append(emitter, "<ul>"); break;
+    case M_AST_LIST_BY_BULLET_ITEM: append(emitter, "<li>"); break;
+    case M_AST_LIST_BY_NUMBER:      append(emitter, "<ol>"); break;
+    case M_AST_LIST_BY_NUMBER_ITEM: append(emitter, "<li>"); break;
+    case M_AST_LIST_BY_CHECKBOX:    append(emitter, "<ul class=\"by-checkbox\">"); break;
+    case M_AST_META_INLINE:         append(emitter, "<span "); parse_meta(emitter, node, 0); break;
+    case M_AST_META_TREE:           append(emitter, "<div "); parse_meta(emitter, node, 1); break;
+    case M_AST_META_BLOCK:          append(emitter, "<div "); parse_meta(emitter, node, 1); break;
 
-    case PN_AST_LIST_BY_CHECKBOX_ITEM: {
+    case M_AST_LIST_BY_CHECKBOX_ITEM: {
         append(emitter, "<li><input style=\"float: left; margin-left: -1.7em;\" type=\"checkbox\" disabled=\"\"");
         if (node->as.checked_list_item.is_checked) append(emitter, "checked=\"\"");
         append(emitter, ">");
     } break;
 
-    case PN_AST_EMPHASIS: {
+    case M_AST_EMPHASIS: {
         switch (node->as.emphasis.lvl) {
         case 1:  append(emitter, "<i>"); break;
         case 2:  append(emitter, "<b>"); break;
@@ -321,7 +321,7 @@ static void on_node_enter (Emitter *emitter, Pn_Ast *node) {
         }
     } break;
 
-    case PN_AST_HEADER: {
+    case M_AST_HEADER: {
         switch (node->as.header.lvl) {
         case 1:  append(emitter, "<h1>"); break;
         case 2:  append(emitter, "<h2>"); break;
@@ -340,37 +340,37 @@ static void on_node_enter (Emitter *emitter, Pn_Ast *node) {
     }
 }
 
-static void on_node_exit (Emitter *emitter, Pn_Ast *node) {
+static void on_node_exit (Emitter *emitter, M_Ast *node) {
     switch (node->type) {
     default: break;
-    case PN_AST_PARAGRAPH:             append(emitter, "</p>"); break;
-    case PN_AST_PARAGRAPH_BLANK:       append(emitter, "</p>"); break;
-    case PN_AST_FORMAT_BLOCK:          append(emitter, "</pre>"); break;
-    case PN_AST_FORMAT_BLOCK_STRICT:   append(emitter, "</pre>"); break;
-    case PN_AST_FORMAT_INLINE:         append(emitter, "</span>"); break;
-    case PN_AST_STRIKETHROUGH:         append(emitter, "</s>"); break;
-    case PN_AST_SUB_SCRIPT:            append(emitter, "</sub>"); break;
-    case PN_AST_SUP_SCRIPT:            append(emitter, "</sup>"); break;
-    case PN_AST_TABLE:                 append(emitter, "</tr>\n</table>\n"); break;
-    case PN_AST_TABLE_CELL:            append(emitter, "</td>\n"); break;
-    case PN_AST_LIST:                  append(emitter, "</ul>"); break;
-    case PN_AST_LIST_ITEM:             append(emitter, "</li>"); break;
-    case PN_AST_LIST_BY_BULLET:        append(emitter, "</ul>"); break;
-    case PN_AST_LIST_BY_BULLET_ITEM:   append(emitter, "</li>"); break;
-    case PN_AST_LIST_BY_NUMBER:        append(emitter, "</ol>"); break;
-    case PN_AST_LIST_BY_NUMBER_ITEM:   append(emitter, "</li>"); break;
-    case PN_AST_LIST_BY_CHECKBOX:      append(emitter, "</ul>"); break;
-    case PN_AST_LIST_BY_CHECKBOX_ITEM: append(emitter, "</li>"); break;
-    case PN_AST_BLOCKQUOTE:            append(emitter, "</blockquote>"); break;
-    case PN_AST_META_INLINE:           append(emitter, "</span>"); break;
+    case M_AST_PARAGRAPH:             append(emitter, "</p>"); break;
+    case M_AST_PARAGRAPH_BLANK:       append(emitter, "</p>"); break;
+    case M_AST_FORMAT_BLOCK:          append(emitter, "</pre>"); break;
+    case M_AST_FORMAT_BLOCK_STRICT:   append(emitter, "</pre>"); break;
+    case M_AST_FORMAT_INLINE:         append(emitter, "</span>"); break;
+    case M_AST_STRIKETHROUGH:         append(emitter, "</s>"); break;
+    case M_AST_SUB_SCRIPT:            append(emitter, "</sub>"); break;
+    case M_AST_SUP_SCRIPT:            append(emitter, "</sup>"); break;
+    case M_AST_TABLE:                 append(emitter, "</tr>\n</table>\n"); break;
+    case M_AST_TABLE_CELL:            append(emitter, "</td>\n"); break;
+    case M_AST_LIST:                  append(emitter, "</ul>"); break;
+    case M_AST_LIST_ITEM:             append(emitter, "</li>"); break;
+    case M_AST_LIST_BY_BULLET:        append(emitter, "</ul>"); break;
+    case M_AST_LIST_BY_BULLET_ITEM:   append(emitter, "</li>"); break;
+    case M_AST_LIST_BY_NUMBER:        append(emitter, "</ol>"); break;
+    case M_AST_LIST_BY_NUMBER_ITEM:   append(emitter, "</li>"); break;
+    case M_AST_LIST_BY_CHECKBOX:      append(emitter, "</ul>"); break;
+    case M_AST_LIST_BY_CHECKBOX_ITEM: append(emitter, "</li>"); break;
+    case M_AST_BLOCKQUOTE:            append(emitter, "</blockquote>"); break;
+    case M_AST_META_INLINE:           append(emitter, "</span>"); break;
 
-    case PN_AST_META_TREE:
-    case PN_AST_META_BLOCK: {
+    case M_AST_META_TREE:
+    case M_AST_META_BLOCK: {
         if (node->type == -1) append(emitter, "</details>");
         append(emitter, "</div>");
     } break;
 
-    case PN_AST_EMPHASIS: {
+    case M_AST_EMPHASIS: {
         switch (node->as.emphasis.lvl) {
         case 1:  append(emitter, "</i>"); break;
         case 2:  append(emitter, "</b>"); break;
@@ -379,7 +379,7 @@ static void on_node_exit (Emitter *emitter, Pn_Ast *node) {
         }
     } break;
 
-    case PN_AST_HEADER: {
+    case M_AST_HEADER: {
         switch (node->as.header.lvl) {
         case 1:  append(emitter, "</h1>"); break;
         case 2:  append(emitter, "</h2>"); break;
@@ -394,26 +394,26 @@ static void on_node_exit (Emitter *emitter, Pn_Ast *node) {
 
 static void mainloop (Emitter *emitter) {
     while (1) {
-        Pn_Event *e = pn_next(emitter->parser);
+        M_Event *e = m_next(emitter->parser);
         switch (e->type) {
-        case PN_EVENT_EOF:           return;
-        case PN_EVENT_ALLOC_FAIL:    return;
-        case PN_EVENT_NODE_ENTER:    on_node_enter(emitter, e->as.node); break;
-        case PN_EVENT_NODE_EXIT:     on_node_exit(emitter, e->as.node); break;
-        case PN_EVENT_TABLE_ROW_END: append(emitter, "</tr>\n\n<tr>\n"); break;
-        case PN_EVENT_TEXT:          append_tok(emitter, e->as.token); break;
-        default:                     break;
+        case M_EVENT_EOF:           return;
+        case M_EVENT_ALLOC_FAIL:    return;
+        case M_EVENT_NODE_ENTER:    on_node_enter(emitter, e->as.node); break;
+        case M_EVENT_NODE_EXIT:     on_node_exit(emitter, e->as.node); break;
+        case M_EVENT_TABLE_ROW_END: append(emitter, "</tr>\n\n<tr>\n"); break;
+        case M_EVENT_TEXT:          append_tok(emitter, e->as.token); break;
+        default:                    break;
         }
     }
 }
 
-char *pnakotic_to_html (char *in, int in_len) {
+char *markup_to_html (char *in, int in_len) {
     Emitter emitter             = {0};
     emitter.fragment_capacity   = in_len;
     emitter.first_fragment      = calloc(1, sizeof(String_Fragment));
     emitter.last_fragment       = emitter.first_fragment;
     emitter.first_fragment->buf = malloc(in_len);
-    emitter.parser              = pn_new(in, in_len, 0);
+    emitter.parser              = m_new(in, in_len, 0);
     if (!emitter.first_fragment || !emitter.first_fragment->buf || !emitter.parser) goto ON_ERR;
 
     mainloop(&emitter);
@@ -422,14 +422,14 @@ char *pnakotic_to_html (char *in, int in_len) {
 ON_ERR:
     if (emitter.first_fragment) free(emitter.first_fragment->buf);
     free(emitter.first_fragment);
-    if (emitter.parser) pn_free(emitter.parser);
+    if (emitter.parser) m_free(emitter.parser);
     return NULL;
 }
 
 int main (void) {
     char *in   = "test";
     int in_len = strlen(in);
-    char *out  = pnakotic_to_html(in, in_len);
+    char *out  = markup_to_html(in, in_len);
     free(out);
     return EXIT_SUCCESS;
 }

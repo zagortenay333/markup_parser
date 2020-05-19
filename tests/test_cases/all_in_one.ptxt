@@ -1,10 +1,10 @@
 =======================================
 #1. Overview
 
-This is a semi-formal specification of the pnakotic markup language.|
+This is a semi-formal specification of a custom markup language.|
 You can edit the examples below to get the hang of it.
 
-A pnakotic document is a sequence of *block elements* like paragraphs,|
+A document is a sequence of *block elements* like paragraphs,|
 headers, bullet lists, etc.
 
 Some blocks can contain other blocks (for example, lists), some contain|
@@ -242,7 +242,7 @@ The height as well as the ']' are optional.
 Meta elements are blocks that can contain any other blocks (including|
 other meta elements) and have arbitrary text (metadata) attached to them.|
 
-They are used to extend the syntax of the pnakotic language, and there are|
+They are used to extend the syntax of the markup language, and there are|
 3 different types.
 
 #9.1. List Meta

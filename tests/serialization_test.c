@@ -3,8 +3,8 @@
 
 #include <sanitizer/lsan_interface.h>
 
-#define PNAKOTIC_IMPLEMENTATION
-#include "../pnakotic.h"
+#define MARKUP_IMPLEMENTATION
+#include "../markup_parser.h"
 
 
 // =============================================================================
@@ -17,42 +17,42 @@ typedef struct String_Fragment {
 } String_Fragment;
 
 typedef struct {
-    Pn_Parser parser;
+    M_Parser parser;
     char num_scratch_buf[9];
     size_t fragment_capacity;
     String_Fragment *first_fragment, *last_fragment;
 } Emitter;
 
 static char *type_to_str[] = {
-    "PN_AST_ROOT",
-    "PN_AST_PARAGRAPH",
-    "PN_AST_PARAGRAPH_BLANK",
-    "PN_AST_TABLE",
-    "PN_AST_TABLE_CELL",
-    "PN_AST_LIST",
-    "PN_AST_LIST_ITEM",
-    "PN_AST_LIST_BY_BULLET",
-    "PN_AST_LIST_BY_BULLET_ITEM",
-    "PN_AST_LIST_BY_NUMBER",
-    "PN_AST_LIST_BY_NUMBER_ITEM",
-    "PN_AST_LIST_BY_CHECKBOX",
-    "PN_AST_LIST_BY_CHECKBOX_ITEM",
-    "PN_AST_FORMAT_BLOCK",
-    "PN_AST_FORMAT_BLOCK_STRICT",
-    "PN_AST_FORMAT_INLINE",
-    "PN_AST_META_TREE",
-    "PN_AST_META_BLOCK",
-    "PN_AST_META_INLINE",
-    "PN_AST_HEADER",
-    "PN_AST_COMMENT",
-    "PN_AST_SEPARATOR",
-    "PN_AST_BLOCKQUOTE",
-    "PN_AST_LINK",
-    "PN_AST_EMPHASIS",
-    "PN_AST_LINE_BREAK",
-    "PN_AST_SUP_SCRIPT",
-    "PN_AST_SUB_SCRIPT",
-    "PN_AST_STRIKETHROUGH"
+    "M_AST_ROOT",
+    "M_AST_PARAGRAPH",
+    "M_AST_PARAGRAPH_BLANK",
+    "M_AST_TABLE",
+    "M_AST_TABLE_CELL",
+    "M_AST_LIST",
+    "M_AST_LIST_ITEM",
+    "M_AST_LIST_BY_BULLET",
+    "M_AST_LIST_BY_BULLET_ITEM",
+    "M_AST_LIST_BY_NUMBER",
+    "M_AST_LIST_BY_NUMBER_ITEM",
+    "M_AST_LIST_BY_CHECKBOX",
+    "M_AST_LIST_BY_CHECKBOX_ITEM",
+    "M_AST_FORMAT_BLOCK",
+    "M_AST_FORMAT_BLOCK_STRICT",
+    "M_AST_FORMAT_INLINE",
+    "M_AST_META_TREE",
+    "M_AST_META_BLOCK",
+    "M_AST_META_INLINE",
+    "M_AST_HEADER",
+    "M_AST_COMMENT",
+    "M_AST_SEPARATOR",
+    "M_AST_BLOCKQUOTE",
+    "M_AST_LINK",
+    "M_AST_EMPHASIS",
+    "M_AST_LINE_BREAK",
+    "M_AST_SUP_SCRIPT",
+    "M_AST_SUB_SCRIPT",
+    "M_AST_STRIKETHROUGH"
 };
 
 #define NORMAL "\x1B[0;m"
@@ -121,7 +121,7 @@ static char *emitter_finalize (Emitter *emitter) {
         free(tmp);
     }
 
-    pn_free(emitter->parser);
+    m_free(emitter->parser);
     if (buf) buf[buf_len] = '\0';
     return buf;
 }
@@ -195,12 +195,12 @@ static void emitter_append_num (Emitter *emitter, int num) {
 
 static void emitter_mainloop (Emitter *emitter) {
     while (1) {
-        Pn_Event *e = pn_next(emitter->parser);
+        M_Event *e = m_next(emitter->parser);
         switch (e->type) {
-        case PN_EVENT_EOF:        return;
-        case PN_EVENT_ALLOC_FAIL: return;
+        case M_EVENT_EOF:        return;
+        case M_EVENT_ALLOC_FAIL: return;
 
-        case PN_EVENT_NODE_ENTER: {
+        case M_EVENT_NODE_ENTER: {
             emitter_append(emitter, "i ");
             emitter_append_num(emitter, e->indentation);
             emitter_append(emitter, " ");
@@ -210,7 +210,7 @@ static void emitter_mainloop (Emitter *emitter) {
             emitter_append(emitter, "\n");
         } break;
 
-        case PN_EVENT_NODE_EXIT: {
+        case M_EVENT_NODE_EXIT: {
             emitter_append(emitter, "o ");
             emitter_append_num(emitter, e->indentation);
             emitter_append(emitter, " ");
@@ -219,14 +219,14 @@ static void emitter_mainloop (Emitter *emitter) {
             emitter_append(emitter, type_to_str[e->as.node->type]);
 
             switch (e->as.node->type) {
-            case PN_AST_TABLE: {
+            case M_AST_TABLE: {
                 emitter_append(emitter, " ");
                 emitter_append_num(emitter, e->as.node->as.table.n_rows);
                 emitter_append(emitter, " ");
                 emitter_append_num(emitter, e->as.node->as.table.n_cols);
             } break;
 
-            case PN_AST_TABLE_CELL: {
+            case M_AST_TABLE_CELL: {
                 emitter_append(emitter, " ");
                 emitter_append_num(emitter, e->as.node->as.table_cell.row);
                 emitter_append(emitter, " ");
@@ -254,7 +254,7 @@ char *serialize_ast (char *in, size_t in_len) {
     emitter.first_fragment      = calloc(1, sizeof(String_Fragment));
     emitter.last_fragment       = emitter.first_fragment;
     emitter.first_fragment->buf = malloc(in_len);
-    emitter.parser              = pn_new(in, (int)in_len, 0);
+    emitter.parser              = m_new(in, (int)in_len, 0);
     emitter_mainloop(&emitter);
     return emitter_finalize(&emitter);
 }
