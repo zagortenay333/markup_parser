@@ -390,6 +390,7 @@ static int m_advance_to_next_line (M_Lexer *lex) {
         case M_TOKEN_NEWLINE: return 1;
         }
     }
+
     return 1;
 }
 
@@ -403,7 +404,7 @@ static void m_eat_one_whitespace (M_Lexer *lex) {
 static int m_eat_indentation (M_Lexer *lex, int indentation) {
     if (lex->indentation > -1) return (lex->indentation >= indentation);
 
-    M_Token *token  = m_peek_token(lex, 1);
+    M_Token *token   = m_peek_token(lex, 1);
     lex->indentation = 0;
 
     if (*token->txt.buf == ' ') {
@@ -412,6 +413,7 @@ static int m_eat_indentation (M_Lexer *lex, int indentation) {
             ++token->txt.buf; --token->txt.len;
             if (++n == 2) { n = 0; ++lex->indentation; };
         }
+
         if (n == 1) { --token->txt.buf; ++token->txt.len; }
     } else {
         while (*token->txt.buf == '\t' && token->txt.len && lex->indentation < indentation) {
@@ -954,14 +956,15 @@ static M_Parser_State m_parse_table (M_Parser parser, M_Lexer *lex, M_Parselet_F
 
     switch (frame->state) {
     case M_PARSER_STATE_NODE_ENTER: {
-        frame->node->type = M_AST_TABLE;
+        frame->node->type            = M_AST_TABLE;
         frame->node->as.table.n_rows = 0;
         frame->node->as.table.n_cols = M_MAX_TABLE_COLS;
-        m_advance_to_next_line(lex);
-        T->row               = 1;
-        T->col               = 1;
-        T->cols_counted      = 0;
-        T->cell_merge_status = NULL;
+        T->row                       = 1;
+        T->col                       = 1;
+        T->cols_counted              = 0;
+        T->cell_merge_status         = NULL;
+
+        if (m_peek_token(lex, 2)->type == '-') m_advance_to_next_line(lex);
     } return M_PARSER_STATE_TABLE;
 
     case M_PARSER_STATE_TABLE: {
@@ -1057,8 +1060,8 @@ static M_Parselet m_get_block_parselet (M_Parser parser) {
 
 static M_Parselet m_get_inline_parselet (M_Parser parser) {
     M_Lexer *lex = &parser->lexer;
-    int S         = parser->flags & M_PARSER_FLAG_STRICT_FORMAT_MODE;
-    int F         = S || parser->flags & M_PARSER_FLAG_FORMAT_MODE;
+    int S        = parser->flags & M_PARSER_FLAG_STRICT_FORMAT_MODE;
+    int F        = S || parser->flags & M_PARSER_FLAG_FORMAT_MODE;
 
     if (lex->at_start_of_line && m_get_block_parselet(parser) != m_parse_paragraph) return NULL;
 
